@@ -7,7 +7,6 @@
 所有创建,获取文件时的目录格式为：  目录名/子目录/...子目录
 */
 #import "FileClass.h"
-#import "DBClass.h"
 static FileClass *manager=nil;
 @implementation FileClass
 +(instancetype)sharedFileManger
@@ -31,7 +30,7 @@ static FileClass *manager=nil;
 }
 #pragma mark-目录管理
 /*
- 配置app需要的所有目录
+ 配置app需要的所有目录，根据不同用户的userid 创建不同的目录，多用于需要用户登录，缓存数据的应用
  */
 -(BOOL)fileCreate:(NSString *)fileName
 {
@@ -40,18 +39,9 @@ static FileClass *manager=nil;
         NSUserDefaults *users=[NSUserDefaults standardUserDefaults];
         [users setValue:fileName forKey:@"UserIdentify"];
         [users synchronize];
-         NSString *directryPath = [NSHomeDirectory() stringByAppendingString:[NSString stringWithFormat: @"/Library/%@/",fileName]];
+        NSString *directryPath = [NSHomeDirectory() stringByAppendingString:[NSString stringWithFormat: @"/Library/%@/",fileName]];
         [_file createDirectoryAtPath:directryPath withIntermediateDirectories:YES attributes:nil error:nil];
-        _fileNameArr=[NSArray arrayWithObjects:@"msgdb",@"pic",@"video",@"audio",@"doc",@"plist",nil];
-        _fileNameArr1=[NSArray arrayWithObjects:@"img",@"barcode",@"icon",nil];
-        //[self fileCreate:fileName];
-        for (int i=0; i<_fileNameArr.count; i++) {
-            [self fileCreate:fileName childFileName:_fileNameArr[i]];
-        }
-        for (int i=0; i<_fileNameArr1.count;i++) {
-            [self fileCreate:fileName childFileName:[NSString stringWithFormat:@"pic/%@",_fileNameArr1[i]]];
-        }
-         NSLog(@"%@",[self getFile:fileName]);
+        NSLog(@"%@",[self getFile:fileName]);
         return YES;
         
     }
@@ -62,41 +52,8 @@ static FileClass *manager=nil;
     }
     return NO;
 }
-//创建h5根目录
--(BOOL)fileCreateH5:(NSString *)fileName
-{
-    if (![self fileIsExistenceH5:fileName]) {
-        //创建H5根目录文件夹
-        NSString *directryPath = [NSHomeDirectory() stringByAppendingString:[NSString stringWithFormat: @"/Library/Pandora/apps/BossLine/%@/",fileName]];
-        [_file createDirectoryAtPath:directryPath withIntermediateDirectories:YES attributes:nil error:nil];
-        return YES;
-        
-    }
-    else
-    {
-        return YES;
-    }
-    return NO;
-}
 /*
- 判断h5根目录是否存在,不存在就创建
- */
--(BOOL)fileIsExistenceH5:(NSString *)fileName
-{
-    BOOL isDIr;
-    if ([_file fileExistsAtPath:[NSHomeDirectory() stringByAppendingString:[NSString stringWithFormat: @"/Library/Pandora/apps/BossLine/%@/",fileName]] isDirectory:&isDIr]) {
-        if (isDIr) {
-            return YES;
-        }
-        else
-        {
-            return  [self fileCreateH5:fileName];
-        }
-    }
-    return NO;
-}
-/*
- 判断根目录是否存在,不存在就创建
+ 判断根目录（根据不同用户生成不同的目录）是否存在,不存在就创建
  */
 -(BOOL)fileIsExistence:(NSString *)fileName
 {
@@ -109,21 +66,6 @@ static FileClass *manager=nil;
         {
            return  [self fileCreate:fileName];
         }
-    }
-    return NO;
-}
-/*
- H5根目录下创建对应目录
- */
--(BOOL)fileCreateH5:(NSString *)fileName  childFileName:(NSString *)childFileName
-{
-    NSString *directryPath = [self getFileH5:fileName];
-    
-    //创建子目录
-    NSString *childPath=[directryPath stringByAppendingString:[NSString stringWithFormat: @"%@/",childFileName]];
-    if (![self fileIsExistenceH5:childPath]) {
-        [_file createDirectoryAtPath:childPath withIntermediateDirectories:YES attributes:nil error:nil];
-        return YES;
     }
     return NO;
 }
@@ -161,50 +103,6 @@ static FileClass *manager=nil;
     return NO;
 }
 /*
- 判断H5根目录下面的某一目录是否存在
- */
--(BOOL)fileIsExistenceH5:(NSString *)fileName childFileName:(NSString *)childFileName
-{
-    BOOL isDIr;
-    if ([_file fileExistsAtPath:[[self getFileH5:fileName] stringByAppendingString:[NSString stringWithFormat: @"%@/",childFileName]] isDirectory:&isDIr]) {
-        if (isDIr) {
-            return YES;
-        }
-        
-    }
-    else
-    {
-        return  [self fileCreateH5:fileName childFileName:childFileName];
-    }
-    return NO;
-}
-/*
- 获取H5根目录下面的所有子目录返回数组
- */
--(NSArray *)getFileArr:(NSString *)fileName
-{
-    if ([self fileIsExistenceH5:fileName]) {
-        NSString *directryPath =[self getFileH5:fileName];
-        NSArray *arr=[_file subpathsOfDirectoryAtPath:directryPath error:nil];
-        NSLog(@"%@",arr);
-        return arr;
-    }
-    return 0;
-}
-/*
- 获取H5指定目录下面的所有子目录返回数组
- */
--(NSArray *)getFileArr:(NSString *)fileName childFileName:(NSString *)childFileName
-{
-    if ([self fileIsExistenceH5:fileName childFileName:childFileName]) {
-        NSString *directryPath =[[self getFileH5:fileName]stringByAppendingString:[NSString stringWithFormat:@"%@/",childFileName]];
-        NSArray *arr=[_file subpathsOfDirectoryAtPath:directryPath error:nil];
-         NSLog(@"%@",arr);
-        return arr;
-    }
-    return 0;
-}
-/*
  删除目录和文件,此操作只针对子目录起作用
  */
 -(BOOL)delFile:(NSString *)fileName childFileName:(NSString *)childFileName
@@ -240,17 +138,6 @@ static FileClass *manager=nil;
     return 0;
 }
 /*
- 获取H5根目录路径
- */
--(NSString *)getFileH5:(NSString *)fileName
-{
-    if ([self fileIsExistenceH5:fileName]) {
-        NSString *rootFile=[NSHomeDirectory() stringByAppendingString:[NSString stringWithFormat: @"/Library/Pandora/apps/BossLine/%@/",fileName]];
-        return rootFile;
-    }
-    return 0;
-}
-/*
  获取某一指定目录的目录名
  */
 -(NSString *)getFile:(NSString *)fileName childFileName:(NSString *)childFileName
@@ -258,18 +145,6 @@ static FileClass *manager=nil;
     if ([self fileIsExistence:fileName childFileName:childFileName]) {
         NSString *childFile=[[self getFile:fileName] stringByAppendingString:[NSString stringWithFormat: @"%@/",childFileName]];
         return childFile;
-    }
-    return 0;
-}
-/*
- 获取H5某一指定目录的目录名
- */
--(NSString *)getFileH5:(NSString *)fileName childFileName:(NSString *)childFileName
-{
-    if ([self fileIsExistenceH5:fileName childFileName:childFileName]) {
-        NSString *childFile=[[self getFileH5:fileName] stringByAppendingString:[NSString stringWithFormat: @"%@/",childFileName]];
-        return childFile;
-        
     }
     return 0;
 }
@@ -288,7 +163,7 @@ static FileClass *manager=nil;
 }
 
 /*
- 创建plist文件
+ 根据字典创建plist文件
  */
 -(BOOL)fileCreateText:(NSString *)fileName textFileName:(NSString *)textFileName textName:(NSString *)textName contents:(NSDictionary *)data
 {
@@ -306,7 +181,7 @@ static FileClass *manager=nil;
     return NO;
 }
 /*
- 创建plist1文件
+ 根据数组创建plist文件
  */
 -(BOOL)fileCreateText:(NSString *)fileName textFileName:(NSString *)textFileName textName:(NSString *)textName arr:(NSArray *)data
 {
@@ -324,7 +199,7 @@ static FileClass *manager=nil;
     return NO;
 }
 /*
- 更新plist1文件的键值对
+ 更新数组plist文件的键值对
  */
 -(BOOL)fileUpdateText:(NSString *)fileName textFileName:(NSString *)textFileName textName:(NSString *)textName arr:(NSArray *)data
 {
@@ -339,7 +214,7 @@ static FileClass *manager=nil;
     return NO;
 }
 /*
- 更新plist文件的键值对
+ 更新字典plist文件的键值对
  */
 -(BOOL)fileUpdateText:(NSString *)fileName textFileName:(NSString *)textFileName textName:(NSString *)textName contents:(NSDictionary *)data
 {

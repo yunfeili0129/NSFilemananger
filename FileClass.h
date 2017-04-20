@@ -8,18 +8,13 @@
 
 @interface FileClass : NSObject
 @property (nonatomic,strong)NSFileManager *file;
-@property (nonatomic,strong)NSArray  *fileNameArr;
-@property (nonatomic,strong)NSArray  *fileNameArr1;
 +(instancetype)sharedFileManger;
 -(BOOL)fileCreate:(NSString *)fileName;
--(BOOL)fileCreateH5:(NSString *)fileName;
 -(NSString *)getFile:(NSString *)fileName;
 /*
  根目录下创建对应目录
  */
 -(BOOL)fileCreate:(NSString *)fileName  childFileName:(NSString *)childFileName;
--(BOOL)fileCreateH5:(NSString *)fileName  childFileName:(NSString *)childFileName;
--(NSString *)getFileH5:(NSString *)fileName;
 /*
  获取根目录下面的所有子目录返回数组
  */
@@ -28,6 +23,14 @@
  获取指定目录下面的所有子目录返回数组
  */
 -(NSArray *)getFileArr:(NSString *)fileName childFileName:(NSString *)childFileName;
+/*
+ 获取指定的子目录
+*/
+-(NSString *)getFile:(NSString *)fileName childFileName:(NSString *)childFileName;
+/*
+ 判断子目录是否存在
+ */
+-(BOOL)fileIsExistence:(NSString *)fileName childFileName:(NSString *)childFileName;
 /*
  删除目录和文件,此操作只针对子目录起作用
  */
@@ -87,7 +90,5 @@
  获取某一文件的属性用于前端判断是图片还是语音或者问文档
  */
 -(NSDictionary *)getTextAttri:(NSString *)fileName dataFileName:(NSString *)dataFileName;
--(NSString *)getFile:(NSString *)fileName childFileName:(NSString *)childFileName;
--(BOOL)fileIsExistence:(NSString *)fileName childFileName:(NSString *)childFileName;
--(NSString *)getFileH5:(NSString *)fileName childFileName:(NSString *)childFileName;
+
 @end
